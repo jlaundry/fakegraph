@@ -6,6 +6,6 @@ This is a high-performance local development environment, primarily for testing 
 
 ## Usage
 
-#. Do the usual `python -m venv .env && pip install --upgrade pip && pip install -r requirements.txt` dance.
-#. (if required) create a new fake dataset using `python scripts/generate-users.py` (or use the existing)
-#. Run the Flask server using `flask run`
+1. Do the usual `python -m venv .env && pip install --upgrade pip && pip install -r requirements.txt` dance.
+2. (if required) create a new fake dataset using `python scripts/generate-users.py` (or use the existing)
+3. Run the Flask server using `flask run`
