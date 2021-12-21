@@ -4,13 +4,15 @@ from http import HTTPStatus
 import json
 import uuid
 
-from flask import Flask, jsonify, make_response
+from flask import Flask, jsonify, make_response, request
 
 app = Flask(__name__)
 
 USERS = json.load(open('data/users.json', 'r'))
 
 JSONIFY_PRETTYPRINT_REGULAR = True
+
+PAGE_LIMIT=200
 
 def error_response(code, message, http_status=404):
     client_request_id = str(uuid.uuid4())
@@ -44,10 +46,31 @@ def root():
 @app.route("/v1.0/users")
 @app.route("/beta/users")
 def users():
-    return jsonify({
+    if request.args.get('$skiptoken', False):
+        start = int(request.args.get('$skiptoken'))
+    else:
+        start = 0
+    
+    if request.args.get('$limit', False):
+        end = start + int(request.args.get('$limit'))
+    else:
+        end = start + PAGE_LIMIT
+
+    response = {
         "@odata.context": "https://graph.microsoft.com/beta/$metadata#users",
-        "value": USERS,
-    }, )
+        "value": USERS[start:end],
+    }
+
+    if start == 0 and request.args.get('$count', False):
+        response["@odata.count"] = len(USERS)
+
+    if end < len(USERS):
+        response_args = request.args.copy()
+        response_args['$skiptoken'] = end
+        query_string = "&".join(f"{k}={v}" for k,v in response_args.items())
+        response["@odata.nextLink"] = f"{request.base_url}?{query_string}"
+
+    return jsonify(response)
 
 @app.route("/v1.0/users/<uuid:id>")
 @app.route("/beta/users/<uuid:id>")
